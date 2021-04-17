@@ -1,3 +1,6 @@
-src/*
-vendor/*
+backup/
+src/
+dist/
+plugin.yml
+vendor/
 composer.*

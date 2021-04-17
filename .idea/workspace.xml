@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9c71b429-dd0b-4130-9183-02ef25b40f9f" name="Default Changelist" comment="Initial commit.">
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+    <list default="true" id="9c71b429-dd0b-4130-9183-02ef25b40f9f" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/ComposerShader.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ComposerShader.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LICENSE" beforeDir="false" afterPath="$PROJECT_DIR$/LICENSE" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/entry.php" beforeDir="false" afterPath="$PROJECT_DIR$/entry.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -21,6 +21,14 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
+  </component>
   <component name="PhpWorkspaceProjectConfiguration" interpreter_name="PHP8.0" />
   <component name="ProjectId" id="1rFvn7u5lkSW7GrLDbQSL4spuzv" />
   <component name="ProjectViewState">
@@ -36,6 +44,12 @@
     <property name="settings.editor.selected.configurable" value="fileTemplates" />
     <property name="vue.rearranger.settings.migration" value="true" />
   </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\Jack\Documents\GitHub\ComposerShader" />
+      <recent name="C:\Users\Jack\Documents\GitHub\ComposerShader\backup" />
+    </key>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -45,7 +59,8 @@
       <option name="presentableId" value="Default" />
       <updated>1618584817274</updated>
       <workItem from="1618584820008" duration="4958000" />
-      <workItem from="1618591352535" duration="2360000" />
+      <workItem from="1618591352535" duration="5506000" />
+      <workItem from="1618659323411" duration="20502000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit.">
       <created>1618585327035</created>
@@ -54,7 +69,14 @@
       <option name="project" value="LOCAL" />
       <updated>1618585327035</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Parse composers autoload file to obtain namespaces and other autoloader files.">
+      <created>1618594023089</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1618594023089</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -62,6 +84,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Initial commit." />
-    <option name="LAST_COMMIT_MESSAGE" value="Initial commit." />
+    <MESSAGE value="Parse composers autoload file to obtain namespaces and other autoloader files." />
+    <option name="LAST_COMMIT_MESSAGE" value="Parse composers autoload file to obtain namespaces and other autoloader files." />
   </component>
 </project>
