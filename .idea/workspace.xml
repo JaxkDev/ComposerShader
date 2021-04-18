@@ -2,10 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9c71b429-dd0b-4130-9183-02ef25b40f9f" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/ComposerShader.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ComposerShader.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/notes.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/readme.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/entry.php" beforeDir="false" afterPath="$PROJECT_DIR$/entry.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/entry.php" beforeDir="false" afterPath="$PROJECT_DIR$/shade.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -60,7 +61,9 @@
       <updated>1618584817274</updated>
       <workItem from="1618584820008" duration="4958000" />
       <workItem from="1618591352535" duration="5506000" />
-      <workItem from="1618659323411" duration="20502000" />
+      <workItem from="1618659323411" duration="25174000" />
+      <workItem from="1618731665123" duration="4202000" />
+      <workItem from="1618739853431" duration="16919000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit.">
       <created>1618585327035</created>
@@ -76,7 +79,14 @@
       <option name="project" value="LOCAL" />
       <updated>1618594023089</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Shading composer dependencies complete !&#10;- PSR4 &amp; PSR0 Complete !&#10;- TODO, autoload files.&#10;- TODO, class map.">
+      <created>1618682983710</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1618682983710</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -85,6 +95,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Initial commit." />
     <MESSAGE value="Parse composers autoload file to obtain namespaces and other autoloader files." />
-    <option name="LAST_COMMIT_MESSAGE" value="Parse composers autoload file to obtain namespaces and other autoloader files." />
+    <MESSAGE value="Shading composer dependencies complete !&#10;- PSR4 &amp; PSR0 Complete !&#10;- TODO, autoload files.&#10;- TODO, class map." />
+    <option name="LAST_COMMIT_MESSAGE" value="Shading composer dependencies complete !&#10;- PSR4 &amp; PSR0 Complete !&#10;- TODO, autoload files.&#10;- TODO, class map." />
   </component>
 </project>
