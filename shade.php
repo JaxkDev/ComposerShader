@@ -21,8 +21,12 @@ if(PHP_VERSION_ID < 80000){
 if(!extension_loaded("yaml")){
 	error("PHP Extension yaml must be installed to use this utility.");
 }
-if(!file_exists("vendor/composer/autoload_static.php")){
-	error("'vendor/composer/autoload_static.php' not found, are composer dependencies installed ?");
+$files = ["vendor/composer/autoload_classmap.php", "vendor/composer/autoload_files.php",
+	"vendor/composer/autoload_namespaces.php", "vendor/composer/autoload_psr4.php"];
+foreach($files as $file){
+	if(!file_exists($file)){
+		error("'$file' not found, are composer dependencies installed ?");
+	}
 }
 if(!file_exists("plugin.yml") || !file_exists("src")){
 	error("'plugin.yml' and 'src/' not found, make sure plugin source is in same directory.");
@@ -49,35 +53,14 @@ if($prefix === ""){
 	}
 }
 $shadePrefix = "$mainNamespace\\$prefix";
-
 info("Using shade-prefix '$shadePrefix'");
 
 
-$f = fopen(__dir__."/vendor/composer/autoload_static.php", "r");
-$class = null;
-$buffer = "";
-$buffer = fread($f, 512);
-fclose($f);
-preg_match('/class\s+(\w+)(.*)/', $buffer, $matches);
-$class = $matches[1];
-$id = substr($class, strlen("ComposerStaticInit"));
-$class = "Composer\\Autoload\\$class";
-info("Found Composer UID: $id");
-
-
 info("Analysing namespaces...");
-
-require_once(__DIR__."/vendor/composer/autoload_static.php");
-try{
-	$data = (new ReflectionClass($class))->getStaticProperties();
-}catch(ReflectionException $e){
-	error("Failed to load composer autoload static file (/vendor/composer/autoload_static.php)");
-}
-/** @noinspection PhpUndefinedVariableInspection */
-$autoload_files = array_values($data["files"]);
+$autoload_files = array_values(require("vendor/composer/autoload_files.php"));
 $new_autoload_files = []; //Path changes after shading.
-$psr4 = $data["prefixDirsPsr4"];
-$psr0 = array_values($data["prefixesPsr0"]);
+$psr4 = require("vendor/composer/autoload_psr4.php");
+$psr0 = require("vendor/composer/autoload_namespaces.php");
 //TODO classMap?
 
 //Paths of files to shade & inject.
@@ -95,22 +78,20 @@ foreach($psr4 as $k => $p){
 	$psr4_paths[$k] = $p;
 }
 
-foreach($psr0 as $v){
-	foreach($v as $k => $p){
-		if(str_starts_with($mainNamespace, $k)){
-			warning("Ignoring PSR-0 Namespace ($k) as it conflicts with plugins main namespace ($mainNamespace)");
-			continue;
-		}
-		$i = $k[0];
-		foreach($namespaces[$i]??[] as $n){
-			if(str_starts_with($n, $k)){
-				//Woah a PSR-4 Namespace covers a PSR-0 namespace, what to do, what to do....
-				error("A PSR-0 Namespace ($k) collides with the PSR-4 Namespace ($n)");
-			}
-		}
-		$namespaces[$i][] = $k;
-		$psr0_paths[$k] = $p;
+foreach($psr0 as $k => $p){
+	if(str_starts_with($mainNamespace, $k)){
+		warning("Ignoring PSR-0 Namespace ($k) as it conflicts with plugins main namespace ($mainNamespace)");
+		continue;
 	}
+	$i = $k[0];
+	foreach($namespaces[$i]??[] as $n){
+		if(str_starts_with($n, $k)){
+			//Woah a PSR-4 Namespace covers a PSR-0 namespace, what to do, what to do....
+			error("A PSR-0 Namespace ($k) collides with the PSR-4 Namespace ($n)");
+		}
+	}
+	$namespaces[$i][] = $k;
+	$psr0_paths[$k] = $p;
 }
 /*
 var_dump(shadeReferences(<<<code
