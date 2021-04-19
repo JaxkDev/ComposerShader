@@ -1,6 +1,6 @@
 # ComposerShader
 
-#### README for v0.1.0
+#### README for v0.2.0-dev
 
 ---
 
