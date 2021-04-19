@@ -43,6 +43,10 @@ try{
 $prefix = trim($argv[1]??"");
 if($prefix === ""){
 	$prefix = "vendor$UID";
+}else{
+	if(preg_match("/^[a-zA-Z0-9]+$/", $prefix) !== 1|| strlen($prefix) < 4){
+		error("Specified shade-prefix '$prefix' does not match the requirement of 4+ characters (a-Z,0-9)");
+	}
 }
 $shadePrefix = "$mainNamespace\\$prefix";
 
@@ -84,7 +88,8 @@ foreach($psr4 as $k => $p){
 	$k = rtrim($k, "\\");
 	if(str_starts_with($k, $mainNamespace) || str_starts_with($mainNamespace, $k)){
 		//Dont want to shade the entire plugin...
-		error("PSR-4 Namespace ($k) conflicts with plugins main namespace ($mainNamespace)");
+		warning("Ignoring PSR-4 Namespace ($k) as it conflicts with plugins main namespace ($mainNamespace)");
+		continue;
 	}
 	$namespaces[$k[0]][] = $k;
 	$psr4_paths[$k] = $p;
@@ -93,7 +98,8 @@ foreach($psr4 as $k => $p){
 foreach($psr0 as $v){
 	foreach($v as $k => $p){
 		if(str_starts_with($mainNamespace, $k)){
-			error("PSR-0 Namespace ($k) conflicts with plugins main namespace ($mainNamespace)");
+			warning("Ignoring PSR-0 Namespace ($k) as it conflicts with plugins main namespace ($mainNamespace)");
+			continue;
 		}
 		$i = $k[0];
 		foreach($namespaces[$i]??[] as $n){
@@ -273,7 +279,7 @@ function shadeReferences(string $fileContent, string $shadePrefix, array $namesp
 			$str = $token[1];
 			$line = $token[2];
 			if($id === T_EVAL){
-				$warnings[$line][] = "eval() is used here, this is strongly discouraged !!";
+				$warnings[$line][] = "eval() is used here, this is insecure and strongly discouraged !!";
 			} elseif($id === T_EXIT){
 				$warnings[$line][] = "exit()/die() is used here, this will break your pmmp server if executed on the main thread.";
 			} elseif($id === T_NAMESPACE){

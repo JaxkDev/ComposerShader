@@ -45,7 +45,7 @@ as you can see the namespaces no longer collide.
 
 The script [shade.php](shade.php) should be run via CLI (outside of pmmp) in the directory of the plugin.
 
-Usage: `php shade.php -p SHADE_PREFIX`
+Usage: `php shade.php SHADE_PREFIX`
 
 `SHADE_PREFIX` Optional, 4+ chars (a-Z, 0-9)
 
@@ -63,14 +63,16 @@ If your plugin uses the dependencies on the main thread you should call this in 
 eg
 
 *Main.php*
+
 ```php
-<?php
+<?php /** @noinspection ALL */
 /*
  * License and notes here if applicable.
  */
 
 namespace YourPlugin\NameSpace;
 
+//Your IDE won't see this constant declared. so its ok to ignore the warning.
 /** @noinspection PhpUndefinedConstantInspection */
 require_once(\YourPlugin\NameSpace\COMPOSER_AUTOLOAD);
 
@@ -86,11 +88,12 @@ If you are using the composer libraries/packages in another Thread you must call
 
 Note the constant will only be available if the thread was started with `PTHREADS_INHERIT_CONSTANTS`.
 
-To reduce possibility of duplicate constant definitions It's suggested to start threads with `PTHREADS_INHERIT_NONE` and pass the constant as a variable to the thread constructor.
+To reduce possibility of duplicate constant definitions It's suggested to start threads with `PTHREADS_INHERIT_NONE` and
+pass the constant through the constructor.
 
 *PluginsThread.php*
 ```php
-<?php
+<?php  /** @noinspection ALL */
 
 namespace YourPlugin\NameSpace;
 
@@ -100,20 +103,35 @@ class PluginsThread extends Thread{
 
     public function __construct(string $composerPath, ...){
         $this->composerPath = $composerPath;
-        ...
-        //Dont do anything here that references composer libs.
+        //...
+        //Dont reference any composer libs here.
     }
 
     public function run(){
-        require_once($this->composerPath);
-        //Do the stuff that references the libs here.
+        /** @noinspection PhpUndefinedConstantInspection */
+        require_once(\YourPlugin\NameSpace\COMPOSER_AUTOLOAD);
+        //...
+        //Composer libs are now available for use/reference from here onwards.
     }
 }
 ```
 
 *Main.php*
 ```php
+<?php /** @noinspection ALL */
 //Somewhere in your Main class where appropriate
+/** @noinspection PhpUndefinedConstantInspection */
 $thread = new PluginsThread(\YourPlugin\NameSpace\COMPOSER_AUTOLOAD);
 $thread->start(PTHREADS_INHERIT_NONE);
+```
+
+`\YourPlugin\NameSpace\COMPOSER_AUTOLOAD` Is the namespace to the plugins main file.
+
+eg *plugin.yml*
+```yaml
+main: Test\NameSpace\Main
+# so here your namespace is \Test\NameSpace\COMPOSER_AUTOLOAD
+
+# if main was: Hello\Another\NameSpace\ButLonger\MainClass
+# It would be \Hello\Another\NameSpace\ButLonger\COMPOSER_AUTOLOAD
 ```
