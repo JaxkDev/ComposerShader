@@ -14,30 +14,36 @@
 
 const VERSION = "0.2.0-dev";
 
+//PHP8 Introduced namespace tokens which makes this 100x easier, https://wiki.php.net/rfc/namespaced_names_as_token
 if(PHP_VERSION_ID < 80000){
-	//namespaced tokens changed dramatically in 8, too lazy to have BC with 7.
 	error("PHP 8+ Required.");
 }
+
+//Required to parse main file (& namespace) from plugin.yml
 if(!extension_loaded("yaml")){
 	error("PHP Extension yaml must be installed to use this utility.");
 }
-$files = ["vendor/composer/autoload_classmap.php", "vendor/composer/autoload_files.php",
-	"vendor/composer/autoload_namespaces.php", "vendor/composer/autoload_psr4.php"];
-foreach($files as $file){
-	if(!file_exists($file)){
-		error("'$file' not found, are composer dependencies installed ?");
+
+//All composer files that store information about autoload files, namespaces and directories.
+foreach(["autoload_classmap.php", "autoload_files.php", "autoload_namespaces.php", "autoload_psr4.php"] as $file){
+	if(!file_exists("vendor/composer/$file")){
+		error("'vendor/composer/$file' not found, are composer dependencies installed ?");
 	}
 }
+
+//Plugin must be in source form in the same directory as vendor/
 if(!file_exists("plugin.yml") || !file_exists("src")){
 	error("'plugin.yml' and 'src/' not found, make sure plugin source is in same directory.");
 }
 
-$startTime = microtime(true);
+$START_TIME = microtime(true);
 
+//Parse main files location and namespace from plugin.yml
 $mainFile = @yaml_parse_file("plugin.yml")["main"];
 $mainNamespace = implode("\\", array_slice(explode("\\", $mainFile), 0, -1));
 $mainFile = __DIR__."\\src\\$mainFile.php";
 
+//Generate a UID and shade-prefix.
 $UID = "99999999";
 try{
 	$UID = bin2hex(random_bytes(4));
@@ -57,41 +63,54 @@ info("Using shade-prefix '$shadePrefix'");
 
 
 info("Analysing namespaces...");
-$autoload_files = array_values(require("vendor/composer/autoload_files.php"));
-$new_autoload_files = []; //Path changes after shading.
+
+//Files that should be 'required'/'imported' at start often to register functions / constants in their namespace, once and once only.
+$autoload_files = require("vendor/composer/autoload_files.php");
+//The expected method of namespace auto-loading, PSR-4.
 $psr4 = require("vendor/composer/autoload_psr4.php");
+//Although deprecated several years ago, *many* dependencies still used, specify a PSR-0 namespace.
 $psr0 = require("vendor/composer/autoload_namespaces.php");
-//TODO classMap?
+//TODO classMap? this will require a special method of shading (checking entire namespace not just prefix),
+//Note could be `T_USE T_STRING`
+
+//Validate autoload data before using it.
+if(!is_array($autoload_files)) error("'vendor/composer/autoload_files.php' is corrupt or in an unknown format.");
+else $autoload_files = array_values($autoload_files);
+if(!is_array($psr4)) error("'vendor/composer/autoload_psr4.php' is corrupt or in an unknown format.");
+if(!is_array($psr0)) error("'vendor/composer/autoload_namespaces.php' is corrupt or in an unknown format.");
 
 //Paths of files to shade & inject.
-$psr4_paths = $psr0_paths = $namespaces = [];
+$psr4_paths = $psr0_paths = $namespaces = $new_autoload_files = [];
 $refCount = $fileCount = 0;
 
-foreach($psr4 as $k => $p){
-	$k = rtrim($k, "\\");
-	if(str_starts_with($k, $mainNamespace) || str_starts_with($mainNamespace, $k)){
-		//Dont want to shade the entire plugin...
-		warning("Ignoring PSR-4 Namespace ($k) as it conflicts with plugins main namespace ($mainNamespace)");
+//Parse the psr4 namespaces and check for any conflicts with plugin.
+foreach($psr4 as $namespace => $path){
+	$namespace = rtrim($namespace, "\\");
+	if(str_starts_with($namespace, $mainNamespace) || str_starts_with($mainNamespace, $namespace)){
+		//If we were to shade the namespace that conflicts the plugin we would end up shading the entire plugin and breaking the plugin.
+		//So we just ignore it, it may be the plugins namespace specified in composer.json (this is added to the autoload files along with dep's)
+		warning("Ignoring PSR-4 Namespace ($namespace) as it conflicts with plugins main namespace ($mainNamespace)");
 		continue;
 	}
-	$namespaces[$k[0]][] = $k;
-	$psr4_paths[$k] = $p;
+	//Index the namespaces by first letter for slightly faster search times in much larger and complex dependency tree's
+	$namespaces[$namespace[0]][] = $namespace;
+	$psr4_paths[$namespace] = $path;
 }
 
-foreach($psr0 as $k => $p){
-	if(str_starts_with($mainNamespace, $k)){
-		warning("Ignoring PSR-0 Namespace ($k) as it conflicts with plugins main namespace ($mainNamespace)");
+foreach($psr0 as $namespace => $path){
+	if(str_starts_with($mainNamespace, $namespace)){
+		warning("Ignoring PSR-0 Namespace ($namespace) as it conflicts with plugins main namespace ($mainNamespace)");
 		continue;
 	}
-	$i = $k[0];
-	foreach($namespaces[$i]??[] as $n){
-		if(str_starts_with($n, $k)){
-			//Woah a PSR-4 Namespace covers a PSR-0 namespace, what to do, what to do....
-			error("A PSR-0 Namespace ($k) collides with the PSR-4 Namespace ($n)");
+	foreach($namespaces[$namespace[0]]??[] as $n){
+		if(str_starts_with($n, $namespace)){
+			//Not actually seen this case occur but it's probably best to check it before chancing it,
+			//If anyone gets this let me know, even if PSR-0 was deprecated several years ago.
+			error("A PSR-0 Namespace ($namespace) collides with the PSR-4 Namespace ($n)");
 		}
 	}
-	$namespaces[$i][] = $k;
-	$psr0_paths[$k] = $p;
+	$namespaces[$namespace[0]][] = $namespace;
+	$psr0_paths[$namespace] = $path;
 }
 /*
 var_dump(shadeReferences(<<<code
@@ -128,6 +147,7 @@ if(sizeof($autoload_files) > 0 and !$foundComposer){
 
 @mkdir(__DIR__."/src/$shadePrefix");
 
+//TODO Merge with PSR-0, Duplicated entire segment because of difference in $newPath
 //Shade and copy psr4 composer namespaces.
 foreach($psr4_paths as $namespace => $paths){
 	foreach($paths as $path){
@@ -149,6 +169,7 @@ foreach($psr4_paths as $namespace => $paths){
 				}
 			}
 			$suffix = substr($file, strlen($path));
+			//PMMP Plugins only support PSR-0 so place the new file in its rightful shaded folder namespace.
 			$newPath = __DIR__ . "/src/$shadePrefix/" . $namespace . $suffix;
 			$newDir = implode("\\", array_slice(explode("\\", $newPath), 0, -1));
 			@mkdir($newDir, 0777, true);
@@ -169,7 +190,6 @@ foreach($psr4_paths as $namespace => $paths){
 //Shade and copy psr0 composer namespaces.
 foreach($psr0_paths as $baseNamespace => $paths){
 	foreach($paths as $path){
-		//PSR-0, Deprecated several years ago but still found in many common dependencies.
 		$path = realpath($path);
 		if(!is_dir($path)){
 			error("Mismatch between composer autoloader data and files on system, re-install composer dependencies and try again.");
@@ -182,6 +202,7 @@ foreach($psr0_paths as $baseNamespace => $paths){
 			$warnings = [];
 			$newContent = shadeReferences($fileContent, $shadePrefix, $namespaces, $warnings, $refCount);
 			$suffix = substr($file, strlen($path));
+			//PMMP Plugins only support PSR-0 so place the new file in its rightful shaded folder namespace.
 			$newPath = __DIR__ . "/src/$shadePrefix/" . $suffix;
 			$newDir = implode("\\", array_slice(explode("\\", $newPath), 0, -1));
 			@mkdir($newDir, 0777, true);
@@ -201,9 +222,9 @@ foreach($psr0_paths as $baseNamespace => $paths){
 info("Generating autoloader file.");
 
 //if there is left over autoload_files its probable its an entire dependency with only polyfills which can break badly if requiring other files not shaded...
+//@mkdir("src/$shadePrefix/autoload$UID/");
 //TODO Recursively check tokens for any requires/includes and then cross reference the string/namespace with shaded files, if not shaded copy it over to autoload dir.
 
-@mkdir("src/$shadePrefix/autoload$UID/");
 $timestamp = date('Y-m-d H:i:s');
 $ver = VERSION;
 $autoloadFileContents = <<<code
@@ -215,8 +236,7 @@ $autoloadFileContents = <<<code
  * Version: v$ver
  * Timestamp: $timestamp
  * 
- * Plugin: $mainNamespace
- * Shaded: $shadePrefix
+ * Shaded namespace: $shadePrefix
  * 
  * https://github.com/JaxkDev/ComposerShader
  */
@@ -238,7 +258,7 @@ code;
 //Add constant to main class namespace.
 @file_put_contents($mainFile, injectCode(@file_get_contents($mainFile), "const COMPOSER_AUTOLOAD = __DIR__.'/$rawShadePrefix/autoload.php';"));
 
-info("Shaded $fileCount files and $refCount references in ".round(microtime(true)-$startTime,2)."s");
+info("Shaded $fileCount files and $refCount references in ".round(microtime(true)-$START_TIME,2)."s");
 exit(0);
 
 
