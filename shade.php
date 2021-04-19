@@ -314,8 +314,7 @@ function injectCode(string $content, string $code): string{
 	$tokens = token_get_all($content);
 	$ret = "";
 	$namespaceLine = null;
-	foreach($tokens as $offset => $token){
-		if($offset < 30) var_dump($token);
+	foreach($tokens as $token){
 		if(is_array($token)){
 			$id = $token[0];
 			$str = $token[1];
