@@ -12,7 +12,7 @@
 
 // Beware, there some dragons hiding, waiting to burn your eyes, you have been warned...
 
-const VERSION = "1.0";
+const VERSION = "0.1.0";
 
 if(PHP_VERSION_ID < 80000){
 	//namespaced tokens changed dramatically in 8, too lazy to have BC with 7.
