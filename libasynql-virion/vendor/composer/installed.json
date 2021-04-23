@@ -1,0 +1,39 @@
+{
+    "packages": [
+        {
+            "name": "poggit/libasynql",
+            "version": "dev-master",
+            "version_normalized": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/JaxkDev/libasynql.git",
+                "reference": "1d8624d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/JaxkDev/libasynql/zipball/1d8624d",
+                "reference": "1d8624d",
+                "shasum": ""
+            },
+            "time": "2021-04-21T15:11:00+00:00",
+            "default-branch": true,
+            "type": "library",
+            "installation-source": "source",
+            "autoload": {
+                "psr-4": {
+                    "poggit\\libasynql\\": "src/"
+                }
+            },
+            "license": [
+                "Apache-2.0"
+            ],
+            "description": "Asynchronous MySQL access library for PocketMine plugins.",
+            "support": {
+                "source": "https://github.com/JaxkDev/libasynql/tree/master"
+            },
+            "install-path": "../poggit/libasynql"
+        }
+    ],
+    "dev": false,
+    "dev-package-names": []
+}

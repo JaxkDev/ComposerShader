@@ -1,0 +1,6 @@
+name: TestName
+version: 1.0.0
+main: Test\Name\Plugin
+api: 3.18.0
+extensions:
+  core: ">=7.4"

@@ -1,0 +1,27 @@
+{
+    "name": "test/name",
+    "description": "Desc",
+    "type": "project",
+    "license": "OSL-3",
+    "authors": [
+        {
+            "name": "JaxkDev",
+            "email": "JaxkDev@gmail.com"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/JaxkDev/libasynql"
+        }
+    ],
+    "require": {
+        "php": ">=7.4",
+        "ext-yaml": "*",
+        "poggit/libasynql": "dev-master#1d8624d"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^0.12.84",
+        "pocketmine/pocketmine-mp": "^3"
+    }
+}
