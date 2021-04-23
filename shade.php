@@ -38,10 +38,17 @@ if(!file_exists("plugin.yml") || !file_exists("src")){
 
 $START_TIME = microtime(true);
 
+//todo cli arg.
+if(is_dir("shaded")) rrmdir("shaded");
+@mkdir("shaded");
+rcopy("src", "shaded/src");
+rcopy("resources", "shaded/resources");
+copy("plugin.yml", "shaded/plugin.yml");
+
 //Parse main files location and namespace from plugin.yml
-$mainFile = @yaml_parse_file("plugin.yml")["main"];
+$mainFile = @yaml_parse_file("shaded/plugin.yml")["main"];
 $mainNamespace = implode("\\", array_slice(explode("\\", $mainFile), 0, -1));
-$mainFile = __DIR__."\\src\\$mainFile.php";
+$mainFile = __DIR__."\\shaded\\src\\$mainFile.php";
 
 //Generate a UID and shade-prefix.
 $UID = "99999999";
@@ -123,7 +130,7 @@ code
 
 exit(0);*/
 //Shade references in plugin:
-$path = __DIR__."\\src";
+$path = __DIR__."\\shaded\\src";
 if(!is_dir($path)) error("Plugin directory '$path' not found.");
 $files = getDirFiles($path);
 info("Shading plugin file references.");
@@ -146,7 +153,7 @@ if(sizeof($autoload_files) > 0 and !$foundComposer){
 	error("Plugin source does not require 'COMPOSER_AUTOLOAD' but ".sizeof($autoload_files)." autoload files have been found.");
 }
 
-@mkdir(__DIR__."/src/$shadePrefix");
+@mkdir(__DIR__."/shaded/src/$shadePrefix");
 
 //TODO Merge with PSR-0, Duplicated entire segment because of difference in $newPath
 //Shade and copy psr4 composer namespaces.
@@ -171,7 +178,7 @@ foreach($psr4_paths as $namespace => $paths){
 			}
 			$suffix = substr($file, strlen($path));
 			//PMMP Plugins only support PSR-0 so place the new file in its rightful shaded folder namespace.
-			$newPath = __DIR__ . "/src/$shadePrefix/" . $namespace . $suffix;
+			$newPath = __DIR__ . "/shaded/src/$shadePrefix/" . $namespace . $suffix;
 			$newDir = implode("\\", array_slice(explode("\\", $newPath), 0, -1));
 			@mkdir($newDir, 0777, true);
 			@file_put_contents($newPath, $newContent);
@@ -204,7 +211,7 @@ foreach($psr0_paths as $baseNamespace => $paths){
 			$newContent = shadeReferences($fileContent, $shadePrefix, $namespaces, $warnings, $refCount);
 			$suffix = substr($file, strlen($path));
 			//PMMP Plugins only support PSR-0 so place the new file in its rightful shaded folder namespace.
-			$newPath = __DIR__ . "/src/$shadePrefix/" . $suffix;
+			$newPath = __DIR__ . "/shaded/src/$shadePrefix/" . $suffix;
 			$newDir = implode("\\", array_slice(explode("\\", $newPath), 0, -1));
 			@mkdir($newDir, 0777, true);
 			@file_put_contents($newPath, $newContent);
@@ -255,7 +262,7 @@ if($foundComposer){
 	code;
 	}
 
-	@file_put_contents("src/$shadePrefix/autoload.php", $autoloadFileContents);
+	@file_put_contents("shaded/src/$shadePrefix/autoload.php", $autoloadFileContents);
 
 	//Add constant to main class namespace.
 	@file_put_contents($mainFile, injectCode(@file_get_contents($mainFile), "const COMPOSER_AUTOLOAD = __DIR__.'/$rawShadePrefix/autoload.php';"));
@@ -351,6 +358,37 @@ function getDirFiles(string $dir): array{
 		}
 	}
 	return $f;
+}
+
+function rrmdir($dir): void{
+	if(!is_dir($dir)) return;
+	$objects = scandir($dir);
+	foreach($objects as $object){
+		if($object !== "." && $object !== ".."){
+			if(is_dir($dir.DIRECTORY_SEPARATOR.$object) && !is_link($dir.DIRECTORY_SEPARATOR.$object)){
+				rrmdir($dir.DIRECTORY_SEPARATOR.$object);
+			}else{
+				unlink($dir.DIRECTORY_SEPARATOR.$object);
+			}
+		}
+	}
+	rmdir($dir);
+}
+
+function rcopy($src, $dst): void{
+	if(!is_dir($src)) return;
+	$dir = opendir($src);
+	@mkdir($dst);
+	while(($file = readdir($dir)) !== false){
+		if(($file !== '.') && ($file !== '..')){
+			if(is_dir($src.DIRECTORY_SEPARATOR.$file)){
+				rcopy($src.DIRECTORY_SEPARATOR.$file, $dst.DIRECTORY_SEPARATOR.$file);
+			}else{
+				copy($src.DIRECTORY_SEPARATOR.$file, $dst.DIRECTORY_SEPARATOR.$file);
+			}
+		}
+	}
+	closedir($dir);
 }
 
 function error(string $message, int $exitCode = 1){
