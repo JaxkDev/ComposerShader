@@ -89,7 +89,7 @@ If you are using the composer libraries/packages in another Thread you must call
 Note the constant will only be available if the thread was started with `PTHREADS_INHERIT_CONSTANTS`.
 
 To reduce possibility of duplicate constant definitions It's suggested to start threads with `PTHREADS_INHERIT_NONE` and
-pass the constant through the constructor.
+pass the constant/path through the constructor.
 
 *PluginsThread.php*
 ```php
@@ -109,7 +109,7 @@ class PluginsThread extends Thread{
 
     public function run(){
         /** @noinspection PhpUndefinedConstantInspection */
-        require_once(\YourPlugin\NameSpace\COMPOSER_AUTOLOAD);
+        require_once($this->composerPath);
         //...
         //Composer libs are now available for use/reference from here onwards.
     }
