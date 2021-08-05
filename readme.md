@@ -11,6 +11,11 @@ but a package may do some dynamic requiring/defining and break at runtime.
 
 You can however fork the library/package you want and modify if possible the way it does the dynamic calls so it can be shaded.
 
+## When not to shade:
+Shading composer libs should only be done for internal plugin usage only, if you expose an API method f.e `$plugin->getSomething(string $something): Promise{}` this returns a Promise but will reference your shaded library, external plugins will have no guarenteed path for that class unless you always shade to the same place.
+
+In simple it's not a solution for when you expose methods that include shaded usages.
+
 ## Why shade ?
 As more advanced projects and plugins become readily available through github and poggit the chance of a namespace collision increases exponentially.
 
